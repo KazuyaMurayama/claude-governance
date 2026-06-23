@@ -1,0 +1,48 @@
+{
+  "_comment": "This is the canonical template of ~/.claude/settings.json. Personal/local values (MCP server paths, enabledPlugins, autoUpdatesChannel) are kept as placeholders. Sync this file to ~/.claude/settings.json after adjusting placeholders.",
+  "env": {
+    "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
+    "CLAUDE_CODE_MAX_RETRIES": "15",
+    "API_TIMEOUT_MS": "900000"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "PowerShell(*)",
+      "Read(*)",
+      "Edit(*)",
+      "MultiEdit(*)",
+      "Write(*)",
+      "WebFetch(*)",
+      "WebSearch",
+      "Glob(*)",
+      "Grep(*)",
+      "NotebookEdit(*)",
+      "Task(*)",
+      "TodoWrite",
+      "Skill(*)",
+      "mcp__*"
+    ],
+    "deny": [
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)",
+      "Bash(git push --force-with-lease origin main)",
+      "Bash(git branch -D *)",
+      "Bash(git branch --delete --force *)",
+      "Bash(git push origin --delete *)",
+      "Bash(git reset --hard origin/*)",
+      "Bash(gh repo delete*)"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "model": "claude-fable-5[1m]",
+  "autoUpdatesChannel": "latest",
+  "skipDangerousModePermissionPrompt": true,
+  "agentPushNotifEnabled": true,
+  "_personal_local_values": {
+    "_note": "The following keys exist in the actual settings.json but are personal/local — set them after copying this template.",
+    "enabledPlugins": "e.g. {\"frontend-design@claude-plugins-official\": true}",
+    "extraKnownMarketplaces": "personal marketplace registrations",
+    "mcpServers": "personal MCP server paths and configs (e.g. serena, gmail, etc.)"
+  }
+}
