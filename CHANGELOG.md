@@ -1,9 +1,33 @@
 # CHANGELOG — claude-governance 変更履歴
 
 作成日: 2026-06-23
-最終更新日: 2026-06-02
+最終更新日: 2026-06-23
 
 > 変更の **WHAT** より **WHY** を残すことを優先する。何を変えたかは git log で追えるが、なぜそうしたかは記録しないと失われる。
+
+---
+
+## 2026-06-23 — settings.json テンプレを実機と再同期（model=opus[1m] 正典化・behavior flags 追加）
+
+### What
+- `global/settings.json.template` を実機 `~/.claude/settings.json` と再同期：
+  - `model`: `claude-fable-5[1m]` → **`opus[1m]`**（ユーザー指示で opus を正典化）
+  - `switchModelsOnFlag: true`、`effortLevel: "xhigh"` を**追加**（実機にあったがテンプレに欠落していた）
+  - `_comment` を実態に合わせて改稿（`autoUpdatesChannel` は placeholder ではなく正典値である旨を明確化、deny 安全装置も正典の一部と明記）
+- 本リポ `CLAUDE.md` §7 を改稿：起動モデル（settings.json の `model`）と役割分担方針（メイン指揮 vs Sonnet委譲）が**別レイヤー**であることを明示し、`opus[1m]` 正典との矛盾を解消。
+
+### Why
+新セッションで `claude-governance` の整備状態を点検した際、テンプレと実機 settings.json の間に乖離が見つかった：
+1. テンプレの `model` が `claude-fable-5[1m]` のままで、実機の `opus[1m]` と不一致 → PC故障時にテンプレから復元すると意図しないモデルになる
+2. `switchModelsOnFlag` / `effortLevel` がテンプレに無く、復元時に欠落する
+3. CLAUDE.md §7「メイン=Fable 5」と settings.json `model=opus[1m]` が読み手に矛盾と映る
+
+**「PC破損時に settings.json を正しく復元できる」ことがこのリポの中核的存在意義**であり、テンプレが実機からずれていると復元自体が壊れる。ユーザー判断で「`opus[1m]` を正典」と確定したため、テンプレ・CLAUDE.md の双方をこれに揃えた。
+
+### How to apply
+- PC復元時は本テンプレから `_personal_local_values` の3キー（enabledPlugins / extraKnownMarketplaces / mcpServers）以外を `~/.claude/settings.json` へ verbatim でコピーすればよい。
+- 検証は `_personal_local_values` 以外の8キー（env / permissions / model / autoUpdatesChannel / skipDangerousModePermissionPrompt / agentPushNotifEnabled / switchModelsOnFlag / effortLevel）が実機と一致するかを `Compare-Object`/`ConvertFrom-Json` で確認する。
+- ※ `global/CLAUDE.md`（実機グローバルの正典コピー）の §7 文面は今回未変更。Fable/Opus どちらをグローバル正典 §7 に書くかは別途判断（変更すると 3箇所同期義務が発生するため保留）。
 
 ---
 
