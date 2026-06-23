@@ -66,13 +66,22 @@
 
 ## 6. Skill 起動ルール
 
-| トリガー | スキル |
-|---|---|
-| アイデア出し・選択肢 | `.claude/skills/sp-brainstorming/SKILL.md` |
-| 計画立案・実行 | `.claude/skills/sp-writing-plans/SKILL.md` + `sp-executing-plans/SKILL.md` |
-| バグ・エラー調査 | `.claude/skills/sp-systematic-debugging/SKILL.md` |
-| QC・レビュー前 | `.claude/skills/analysis-qa-checklist/SKILL.md` |
-| 成果物の納品・コミット前 | `.claude/skills/sp-verification-before-completion/SKILL.md` |
+<!-- SKILLS_RULES_START -->
+## Skill 起動ルール（v2.2 / 2026-06-01）
+以下のスキルは **必須・スキップ禁止**。該当シーンでは SKILL.md を読んでから作業を開始すること。
+
+### ブランチ管理（絶対厳守）
+- **デフォルト: mainへ直接コミット**。ブランチ作成はユーザーが明示的に指示した場合のみ。
+- ブランチを作成した場合、必ず `main` へマージ → ブランチ削除 → push を完了してから作業完了とする。
+- ブランチにファイルを置いたまま回答を完了することを禁止。「完了 = mainにマージ済み＆push済み」。
+- ブランチが残存している場合は、次セッション開始時に `git branch -a` で確認し、即マージ・削除する。
+
+- **アイデア出し・選択肢の洗い出しが必要な時は** `.claude/skills/sp-brainstorming/SKILL.md` を読んでから実施する
+- **複雑な多段タスクに着手する前に必ず** `.claude/skills/sp-writing-plans/SKILL.md` で計画を作成し、`.claude/skills/sp-executing-plans/SKILL.md` の手順で実行する
+- **バグ・エラーの体系的調査が必要な時は** `.claude/skills/sp-systematic-debugging/SKILL.md` を読んでから調査する
+- **成果物の納品・コミット前、または品質チェック（QC）・レビューフェーズに入る時は必ず** `.claude/skills/sp-verification-before-completion/SKILL.md` のチェックリストを実行する
+- **分析・レポートの品質チェック（QC）・レビュー・共有前は必ず** `.claude/skills/analysis-qa-checklist/SKILL.md` を読んでチェックリストを実施する
+<!-- SKILLS_RULES_END -->
 
 ---
 
