@@ -7,6 +7,27 @@
 
 ---
 
+## 2026-06-24 — branch-cleanup スキルを全43リポへ一括展開＋ゴミブランチ実削除
+
+### What
+- 前日新設した `branch-cleanup` スキルを **全43リポへ展開**：各リポに `.claude/skills/branch-cleanup/SKILL.md`（手順全文）を配置し、各リポ `CLAUDE.md` の「ブランチ管理」セクション末尾に `<!-- BRANCH_CLEANUP_START/END -->` トリガーブロックを追記（CLAUDE.md 構成が異なる場合は末尾に新セクション）。
+- 同時に **ゴミブランチ（`claude/*` 等）を実削除**。削除した9本：
+  - deep-research ×1、career_dev ×1、enterprise-ai-strategy-advisor ×1、NASDAQ_backtest ×2、shopping_product_search ×4（うち固有コミット有りは取り込み後削除）
+  - 固有コミットが有ったブランチは `git merge --no-ff` で main に取り込んでから削除（取りこぼしゼロ）。例：career_dev（大学講師リサーチmd）、NASDAQ_backtest（Bond ETF 2255 追記）、shopping_product_search（ルールD＋ホエイプロテインレポート在庫確認）。
+- 削除はすべて **段階A（`git push origin --delete`）で成功**。REST直接（段階B）・Actions フォールバック（段階C）は不要だった＝Web版でも段階Aで十分削除可能であることを実証。
+
+### Why
+ユーザー報告：Web版 Claude Code がブランチ削除を「自分にはできない」と誤認し、ユーザー任せにする問題。スキルを各リポに置くだけでなく、**実際に溜まっていたゴミブランチを今回まとめて掃除**し、全リポを「default branch 1本のみ」のクリーンな状態に揃えた。今後は各リポの自主起動トリガーが機能して、ブランチが溜まる前に整理されるはず。
+
+### How to apply / 検証
+- 展開はローカル clone 経由（git push は credential manager 認証、未認証 REST API のレート制限とは別系統）。ブランチ一覧は `git ls-remote --heads`（APIコスト0）で取得し、レート枯渇を回避。
+- 6サブエージェント並列（model: sonnet）＋パイロット1で実行。
+- **独立検証**：サブエージェント報告を鵜呑みにせず、`git ls-remote --heads`（ブランチ数）＋ raw.githubusercontent（スキル実在）で全43リポを機械再検証。結果 **43/43 OK**（単一 default branch ＋ skill 実在）。
+  - この再検証で shopping_product_search の残ブランチ1本（サブの報告漏れ）を検出・是正できた。**「報告でなく実在で検証」が効いた事例**。
+- default branch 注意：`academic-research-agent_v1` のみ `master`、他42は `main`。
+
+---
+
 ## 2026-06-23 — branch-cleanup スキル新設（Web版でも自走でmain集約・ブランチ削除）
 
 ### What
