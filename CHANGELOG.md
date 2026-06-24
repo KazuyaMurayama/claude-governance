@@ -7,6 +7,29 @@
 
 ---
 
+## 2026-06-23 — branch-cleanup スキル新設（Web版でも自走でmain集約・ブランチ削除）
+
+### What
+- 正典スキル `skills/branch-cleanup/SKILL.md` を新設（手順全文：作業ツリー確認 → 固有コミットの取り込み → 3段階削除 → ローカル整理 → main のみであることの最終確認）。
+- `templates/repo-CLAUDE.md.template` に §9「ブランチ整理（自主起動）」をトリガー1ブロックのみ追記（`<!-- BRANCH_CLEANUP_START/END -->` マーカー方式）。上位ガバナンス参照は §10 へ繰り下げ。
+- 削除手段は **3段階**：① `git push origin --delete` → ② REST API 直接 DELETE（`gh api` / token curl）→ ③ Actions ワークフロー フォールバック（使用後は削除してリポを汚さない）。
+
+### Why
+ユーザー報告：**Web版 Claude Code（claude.ai/code）でブランチ削除を依頼しても「利用できる機能が限られている／ユーザー自身で対応してください」と誤って回答するケースが頻発**。実際には Web版でも `git push origin --delete` / REST API / Actions 経由で削除は実行可能であることは確認済み。AI 側が「自分にはできない」と誤認しているのが原因。
+
+これを防ぐため：
+1. **手順を Skill 形式で各リポに置く** → Web版が「これは実行可能な手順だ」と認識しやすく、単なる md より起動率が高い。
+2. **CLAUDE.md は肥大化させない** → 本体は SKILL.md に集約し、CLAUDE.md にはトリガー数行のみ。
+3. **自主起動** → トリガーに「ユーザー指示」だけでなく「main 以外のブランチ残存の状態検知」を含め、Claude 自身が気づいて起動できるようにした。
+4. SKILL.md と CLAUDE.md の双方に **「Web版でも実行可能。ユーザー任せにしない」** を明記し、誤認を直接打ち消す。
+
+### How to apply
+- 全43リポへ展開：各リポに `.claude/skills/branch-cleanup/SKILL.md`（手順全文）を配置し、各リポ `CLAUDE.md` にトリガーブロックを追記。
+- 既存の SKILLS_RULES ブロックや章番号と衝突しないよう、各リポの実構成に合わせて挿入位置・節番号を調整（マーカー `<!-- BRANCH_CLEANUP_START/END -->` で将来の一括更新を可能にする）。
+- self-contained 原則：SKILL.md は Web版が単独で読んで完結できるよう、全コマンドとフォールバック YAML を内包する。
+
+---
+
 ## 2026-06-23 — settings.json テンプレを実機と再同期（model=opus[1m] 正典化・behavior flags 追加）
 
 ### What
