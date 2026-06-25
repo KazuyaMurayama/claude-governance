@@ -1,9 +1,41 @@
 # CHANGELOG — claude-governance 変更履歴
 
 作成日: 2026-06-23
-最終更新日: 2026-06-23
+最終更新日: 2026-06-25
 
 > 変更の **WHAT** より **WHY** を残すことを優先する。何を変えたかは git log で追えるが、なぜそうしたかは記録しないと失われる。
+
+---
+
+## 2026-06-25 — 43リポ監査＋上位ガバナンス参照を42リポへ自動追加＋EXCLUSIONS導入
+
+### What
+- **監査スクリプト新設**（`audits/audit_43repos.py` + `audit_summary.py`）：12軸×43リポでガバナンス適合性を機械検査。EXCLUSIONS.md で部分除外をサポート。
+- **EXCLUSIONS 機構導入**（`audits/EXCLUSIONS.md`）：「ガバナンス違反」と「意図的独自設計」を区別。partial 除外で特定軸のみスキップ可能。
+- **happiness-system を partial 除外で登録**：default branch が `claude/flourish-forge-setup-wpvm3n` の独自憲法形式リポ。2026-06-23 作成・毎日活発に使用中で、無理に標準化すると独自設計の良さが壊れるため例外扱い。3か月後（2026-09-25）に再評価。
+- **42リポへ「上位ガバナンスへの参照」ブロックを一括追加**（`<!-- GOVERNANCE_LINK_START/END -->` マーカー付き）：GitHub Contents API 直接 PUT で42リポすべて成功・失敗ゼロ。happiness-system のみ EXCLUSIONS に従いスキップ。
+- **NASDAQ_backtest の取り残しブランチ削除**：`claude/sbi-click-365-nasdaq-guide-hfw748`（main と identical / ahead 0・behind 0）を REST API DELETE で削除。
+- **監査スクリプトのキャッシュ問題を修正**：raw.githubusercontent.com は CDN キャッシュで古い内容を返すことが判明。Contents API + token 認証へ切り替え（5000/h レート）。
+- **検証結果**：再監査で「不適合ゼロ」達成（全12軸でゼロ件）。
+
+### Why
+**問題1: 整備の経緯がセッション会話履歴にしか残らず、新セッションで再現困難**
+→ 前日 `claude-governance` リポを新設したが、43リポへの「参照リンク」が無いため、新セッションの Claude（特に Web版）は本リポの存在を知らずに作業を始めてしまう。ガバナンス機能が半分しか発揮されていなかった。
+
+**問題2: 監査機構が無く、ガバナンスドリフトを検知できない**
+→ 「ルールを書く」と「ルールが守られている」は別。機械的監査が無いと、リポを足したり手動編集したりするうちに無自覚に逸脱する。今回の機械検査で実際に2件の見落としを検出できた（NASDAQの残骸ブランチ・shopping_product_search の進行中ブランチ）。
+
+**問題3: 独自設計のリポを「違反」と扱う乱暴さ**
+→ happiness-system は 2026-06-23 作成・現役で活発に使われている独自設計プロジェクト。機械監査が「不適合」と騒ぐと、価値ある独自設計が壊れる方向に圧力がかかる。EXCLUSIONS 機構で「意図的設計」を保護する。
+
+**問題4: ガバナンスドリフトを継続検知できる仕組みが無い**
+→ 監査を一度回すだけでは効果は限定的。再現可能スクリプトを本リポにコミットすることで、いつでも `python audits/audit_43repos.py` で現状確認できる。
+
+### How to apply
+- 新セッションの Claude は本リポを `BOOTSTRAP.md` 経由で読むだけでなく、各リポ末尾の「上位ガバナンスへの参照」セクションを通じて自然に辿れる。
+- 監査の継続実行：`cd claude-governance/audits && python audit_43repos.py > _result.json && python audit_summary.py _result.json`
+- 新リポ追加時：`audit_43repos.py` の `REPOS` リストに追加するだけで自動的に監査対象になる。
+- 独自設計リポを保護したい場合：`EXCLUSIONS.md` に partial 除外エントリを追加（`scope: partial` + `exempt_dims`）。ユーザー承認後の追加が原則。
 
 ---
 
