@@ -41,6 +41,40 @@
   "agentPushNotifEnabled": true,
   "switchModelsOnFlag": true,
   "effortLevel": "max",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" \"C:\\Users\\user\\.claude\\hooks\\pre_write_guard.py\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" \"C:\\Users\\user\\.claude\\hooks\\post_bash_guard.py\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" \"C:\\Users\\user\\.claude\\hooks\\session_guard.py\""
+          }
+        ]
+      }
+    ]
+  },
   "_personal_local_values": {
     "_note": "The following keys exist in the actual settings.json but are personal/local — set them after copying this template.",
     "enabledPlugins": "e.g. {\"frontend-design@claude-plugins-official\": true}",

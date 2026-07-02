@@ -7,6 +7,26 @@
 
 ---
 
+## 2026-07-02 (2) — ルール遵守率改善: 絶対ルールTop10＋決定論的hooks＋HR/EH監査軸（rule-enforcement パッケージ）
+
+### What
+- **⛔絶対ルール Top10 ブロック**（`templates/hard-rules-block.md`、`HARD_RULES_START v1` マーカー）を、ガバナンス対象42リポ＋本リポ＋グローバル `~/.claude/CLAUDE.md`（`global/CLAUDE.md` 同期）＋テンプレの **CLAUDE.md 最上部（H1直後）** に一括配置。
+- **決定論的 hooks 3種**（`templates/hooks/`→各リポ `.claude/hooks/`）: ①`pre_write_guard.py`=Desktop生成をPreToolUseで拒否 ②`post_bash_guard.py`=`git push` 直後に成果物報告ルールをリマインド注入 ③`session_guard.py`=Stop時に非mainブランチ/未pushを検査し終了を1回ブロック（stop_hook_activeでループ不可・全hook fail-open）。
+- **`.claude/settings.json` へのマージ配線**: 既存 permissions / 既存 hooks を保持したまま追記（oogiri・deep-research で保全実証）。ローカル `~/.claude/settings.json` にも絶対パスで配線（テンプレ同期・`audit_local_sync` の正典キーに `hooks` 追加）。
+- **監査に HR / EH 軸を追加**: Top10ブロック存在・hooks配線を月次監査が継続検証。happiness-system は既存除外の帰結として両軸除外。
+- **展開スクリプト** `audits/deploy_rule_enforcement.py`（冪等・マーカー比較で正典へ自動更新・42リポ成功/失敗ゼロ）。
+- 分析・設計・期待効果・留意点の詳細 = `RULE_ENFORCEMENT_20260702.md`。
+
+### Why
+ユーザー報告「記載済みのルールが守られず、指摘すると『見逃しました』と返る」。分析の結論は、(1) ルールがフラットに多すぎて1本あたりの注意が希釈（各リポ195〜324行・23〜39節）、(2) ルールを読む時点（開始時）と使う時点（終了時・ツール実行時）のミスマッチ、(3) 全てが助言テキストで強制力ゼロ（branch-cleanup トリガー配布済みでも4本のブランチ放置が再発した実証あり）、(4) 完了宣言前の機械ゲート不在。**散文の遵守は確率的、hooks は決定論的**。頻出違反3類型（ブランチ・報告・保存先）を機械ガード化し、残りは「Top10だけ最上部」で注意を集中させる。
+
+### How to apply
+- 正典ブロック/hooks を変えたら `python audits/deploy_rule_enforcement.py` で全リポ再展開（冪等）。
+- Web版 hooks 発火は次回 Web セッションで実地確認（`git checkout -b test` → 終了時に完了前チェックが出るか）。層1のTop10ブロックは hooks 非依存で Web版でも確実に効く。
+- ローカル hooks は次セッション起動から有効。
+
+---
+
 ## 2026-07-02 — 監査体制の敵対的レビュー＋頑強化（自動発見・自動実行・偽適合排除）
 
 ### What

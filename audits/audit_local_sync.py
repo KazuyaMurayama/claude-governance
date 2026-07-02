@@ -25,7 +25,7 @@ HOME_CLAUDE = os.path.join(os.path.expanduser("~"), ".claude")
 CANONICAL_SETTINGS_KEYS = [
     "env", "permissions", "model", "autoUpdatesChannel",
     "skipDangerousModePermissionPrompt", "agentPushNotifEnabled",
-    "switchModelsOnFlag", "effortLevel",
+    "switchModelsOnFlag", "effortLevel", "hooks",
 ]
 
 drift = []

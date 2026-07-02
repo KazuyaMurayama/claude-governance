@@ -169,6 +169,7 @@ CHECKS_IN_CLAUDE_MD = {
     "model_section":         ("モデル使い分け", "claude-fable-5"),
     "branch_cleanup_marker": ("BRANCH_CLEANUP_START",),
     "governance_link":       ("claude-governance",),
+    "hard_rules":            ("HARD_RULES_START",),
     "name_oza":              ("男座員也",),
     "name_oza_eng":          ("Kazuya Oza",),
     "haiku_legacy":          ('model: "haiku"',),   # should be ABSENT
@@ -262,6 +263,18 @@ def audit_one(meta):
     row["branch_cleanup_skill"] = head_exists(repo, branch, ".claude/skills/branch-cleanup/SKILL.md")
     if row["branch_cleanup_skill"] is None:
         row["_errors"].append("branch-cleanup SKILL check failed")
+
+    # 3b. rule-enforcement hooks: settings.json wires session_guard AND the script exists
+    st_s, settings_txt = fetch_raw(repo, branch, ".claude/settings.json")
+    if st_s == 200:
+        wired = "session_guard.py" in settings_txt
+        script = head_exists(repo, branch, ".claude/hooks/session_guard.py")
+        row["enforce_hooks"] = (wired and script) if script is not None else None
+    elif st_s == 404:
+        row["enforce_hooks"] = False
+    else:
+        row["enforce_hooks"] = None
+        row["_errors"].append(f"settings.json fetch HTTP {st_s}")
 
     # 4. extra branches (None = could not determine, rendered as "?")
     branches = ls_remote_branches(repo)

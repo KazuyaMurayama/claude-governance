@@ -43,6 +43,8 @@ DIMS = [
     ("branch_cleanup_skill",    "BS"),
     ("governance_link",         "GV"),
     ("governance_link_current", "GC"),
+    ("hard_rules",              "HR"),
+    ("enforce_hooks",           "EH"),
     ("name_oza",                "NO"),
     ("name_oza_eng",            "NE"),
     ("readme_exists",           "RM"),
@@ -86,15 +88,15 @@ print(f"対象: {len(rows)}リポ / 監査日: {audit_date}")
 print("")
 print("## 凡例")
 print("- ✓=適合 / ✗=不適合 / ⚪=`EXCLUSIONS.md` で除外 / ?=判定不可（ネットワーク/権限エラー等。適合扱いにしない）")
-print("- **CL**=CLAUDE.md存在 / **SC**=単独完結 / **N2**=命名v2.0 / **MD**=モデル§ / **BM**=branch-cleanupトリガー / **BS**=branch-cleanup SKILL / **GV**=governance参照 / **GC**=governance参照が正典と一致 / **NO**=男座員也 / **NE**=Kazuya Oza / **RM**=README / **HL**=haiku旧記述(✓=削除済)")
+print("- **CL**=CLAUDE.md存在 / **SC**=単独完結 / **N2**=命名v2.0 / **MD**=モデル§ / **BM**=branch-cleanupトリガー / **BS**=branch-cleanup SKILL / **GV**=governance参照 / **GC**=governance参照が正典と一致 / **HR**=絶対ルールTop10ブロック / **EH**=rule-enforcement hooks配線 / **NO**=男座員也 / **NE**=Kazuya Oza / **RM**=README / **HL**=haiku旧記述(✓=削除済)")
 print("- **XB**=デフォ以外の余分ブランチ数")
 if MASK:
     print("- private リポは名前をマスク表示（公開リポにコミットされるため）。実名確認はローカルで `--no-mask` 実行")
 print("")
 print("## マトリクス")
 print("")
-print("| # | リポ | def | CL | SC | N2 | MD | BM | BS | GV | GC | NO | NE | RM | HL | XB |")
-print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+print("| # | リポ | def | CL | SC | N2 | MD | BM | BS | GV | GC | HR | EH | NO | NE | RM | HL | XB |")
+print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
 
 issues = {k: [] for k, _ in DIMS + NEG}
 issues["extra_branches"] = []

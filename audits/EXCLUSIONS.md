@@ -44,6 +44,8 @@
 | `haiku_legacy` | haiku 旧記述削除 |
 | `extra_branches` | 余分ブランチなし |
 | `governance_link_current` | 上位ガバナンス参照ブロックが正典（`templates/governance-link-block.md`）と一致 |
+| `hard_rules` | 絶対ルール Top10 ブロック（`templates/hard-rules-block.md`）が CLAUDE.md 先頭にある |
+| `enforce_hooks` | rule-enforcement hooks（`.claude/hooks/session_guard.py` 他）が settings.json に配線済み |
 
 ### 記述上の注意（v2 パーサ仕様）
 - **エントリは必ず ` ```yaml ` フェンス内に書く**。プレーンな ``` フェンスや本文中の `- repo:` はパースされない（書式例の誤登録を防ぐため）。
@@ -67,6 +69,8 @@
     - branch_cleanup_marker        # main 不在＝branch-cleanup の前提が成立しない
     - branch_cleanup_skill         # 同上
     - governance_link              # 独自設計の自律性を尊重しリンク強制しない
+    - hard_rules                   # 独自憲法形式のため標準Top10ブロックを強制しない（2026-07-02追加）
+    - enforce_hooks                # 同上（governance_link 除外の帰結）
   reason: |
     flourish-forge 独自運用憲法（50行以内）形式の現役プロジェクト。
     2026-06-23 作成、2026-06-24 まで毎日活発に push（実運用中）。
