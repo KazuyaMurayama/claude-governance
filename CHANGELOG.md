@@ -1,9 +1,44 @@
 # CHANGELOG — claude-governance 変更履歴
 
 作成日: 2026-06-23
-最終更新日: 2026-06-25
+最終更新日: 2026-07-02
 
 > 変更の **WHAT** より **WHY** を残すことを優先する。何を変えたかは git log で追えるが、なぜそうしたかは記録しないと失われる。
+
+---
+
+## 2026-07-02 — 監査体制の敵対的レビュー＋頑強化（自動発見・自動実行・偽適合排除）
+
+### What
+- **残存ブランチ4本を是正**: shopping_product_search ×2（toddler-undershirt / review-search-rules、各1固有コミット）と deep-research ×2（research-cfd-leverage-sbi 8固有コミット / loving-gauss 0）を main へ `--no-ff` マージ後、REST API DELETE（204）。deep-research の tasks.md コンフリクトは日付降順ユニオンで解決。
+- **リポ一覧のハードコード廃止**（`audit_43repos.py` v2）: 認証付き `/user/repos` で毎回自動発見（private 含む・default branch も API 値）。トークン欠如時は fail loud（無認証 60req/h での偽結果を防止）。
+- **偽適合の排除**: `ls-remote` / Contents API の失敗を「?」（判定不可＝FAIL要因）として記録。従来は失敗が「余分ブランチなし」等の偽 ✓ に化けていた。
+- **audit_summary.py v2**: 監査日ハードコード（2026-06-25 固定）を撤廃し JSON meta から取得 / XB・判定不可・期限切れ除外を問題集計と **VERDICT: PASS/FAIL** に反映（従来は4本ブランチ残存でも「不適合ゼロ」表示だった）/ exit code で CI ゲート可能に / **private リポ名をデフォルトでマスク**（本リポは public のため。実名調査は `--no-mask`）。
+- **governance link 陳腐化検知（GC軸）新設**: 正典を `templates/governance-link-block.md` に単一化し、各リポのマーカー間内容と比較。`add_governance_link.py` v2 に `--update`（正典への一括更新）を追加。GV 除外リポは GC も自動除外（含意）。
+- **EXCLUSIONS v2**: ```yaml フェンス内のみパース（書式例のファントム登録を排除）/ `review_after` 期限切れを警告＋FAIL要因として実装（従来は文書に「警告する」とあるだけで未実装だった）。
+- **月次自動監査**（`.github/workflows/governance-audit.yml`）: 毎月1日 05:00 JST に監査 → `audits/AUDIT_LATEST.md` 自動コミット → FAIL 時に Issue 自動起票（重複起票ガード付き）。private リポ監査には secret `GOVERNANCE_PAT` の登録が必要（未登録時は「判定不可」として表面化）。
+- **ローカル同期監査**（`audits/audit_local_sync.py`）新設: 実機 `~/.claude/`（CLAUDE.md / deliverables-policy.md / settings.json 8キー）と本リポ正典の一致、および「正典変更コミットに同日 CHANGELOG 更新があるか」のドリフト検知。
+- **settings.json.template を実機に再同期**: `model: opus[1m]` → **`claude-fable-5[1m]`**、`effortLevel: xhigh` → **`max`**（ユーザー確定）。
+- **再監査結果**: 従来43リポは全軸適合。新カバー3リポ（Soulful-Content ＋ private 2リポ）の不適合17件と private 1リポの残存ブランチ2本（固有コミットあり）を新規検出 → 是正は次セッションのタスク。
+
+### Why
+**問題1: 「不適合ゼロ」は偽りの安心だった**
+06-25 の「不適合ゼロ」達成から7日間で余分ブランチが1本→4本に増殖していたが、誰も監査を実行していなかった（実行者不在）。さらにダッシュボードの問題集計に XB が含まれず、4本残存でも「（なし）」と表示される構造だった。「いつでも実行できる」と「実行される」は別物であり、cron による強制実行と、集計の正直化（VERDICT）で「守られている状態」を機械的に維持する。
+
+**問題2: 監査対象リスト自体が最初から不完全だった**
+ハードコードされた43リポは public のみで、private 2リポ（2025-10 / 2026-04 作成）は初回監査から一度も対象になっていなかった。新リポ（07-01 作成）も手動追記されるまで永久に対象外。「REPOS リストに追加するだけ」という運用は追加する主体が不在なら機能しない。自動発見に切り替え、逆に意図的な除外だけを EXCLUSIONS.md で明示管理する（allowlist→denylist の反転）。
+
+**問題3: 本リポは public であり、private リポの情報を書けない**
+private リポも監査対象に含める以上、コミットされる成果物（ダッシュボード・Issue）に実名を載せると存在自体が漏れる。ユーザー判断で「public 維持・private も監査・名前はマスク」を採択。
+
+**問題4: 文書と実装の乖離（review_after 警告・監査日・旧スクリプト名）**
+EXCLUSIONS.md は「review_after が過ぎたら監査スクリプトが警告」と約束していたが未実装だった。監査日は 2026-06-25 にハードコードされ、再実行しても常に同日と表示された。ドキュメントが約束する挙動は実装されているか、このセッションのような敵対的レビューで定期検証する。
+
+### How to apply
+- 月次監査は自動実行される。**ユーザー作業: fine-grained PAT（Contents/Metadata: Read、全リポ）を発行し、claude-governance の Settings → Secrets → Actions に `GOVERNANCE_PAT` として登録**（未登録でも動くが private リポが「判定不可」として FAIL 表示される）。
+- 手動監査: `PYTHONIOENCODING=utf-8 python audits/audit_43repos.py > /tmp/r.json && python audits/audit_summary.py /tmp/r.json`（実名は `--no-mask`）。
+- governance link ブロックの文言を変える時は `templates/governance-link-block.md` を更新 → `python audits/add_governance_link.py --update` で全リポ一括反映 → GC 軸が自動で追従検証。
+- 未是正の残タスク: Soulful-Content / private 2リポへのガバナンス展開（独自設計の可能性があるため EXCLUSIONS 登録か標準化かはユーザー判断）、private リポ1つの残存ブランチ2本（固有コミットあり・要マージ）。
 
 ---
 

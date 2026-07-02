@@ -3,3 +3,7 @@ __pycache__/
 *.pyo
 .DS_Store
 Thumbs.db
+# audit temp outputs (raw results are committed only as dated AUDIT_RAW_*.json when intended)
+audits/_*.json
+audits/_*.md
+audits/_*.txt

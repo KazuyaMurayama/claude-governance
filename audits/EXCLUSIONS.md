@@ -43,6 +43,12 @@
 | `readme_exists` | README.md |
 | `haiku_legacy` | haiku 旧記述削除 |
 | `extra_branches` | 余分ブランチなし |
+| `governance_link_current` | 上位ガバナンス参照ブロックが正典（`templates/governance-link-block.md`）と一致 |
+
+### 記述上の注意（v2 パーサ仕様）
+- **エントリは必ず ` ```yaml ` フェンス内に書く**。プレーンな ``` フェンスや本文中の `- repo:` はパースされない（書式例の誤登録を防ぐため）。
+- `review_after` を過ぎたエントリは監査で「⚠ 期限切れ」として FAIL 要因になる。再評価して延長または削除すること。
+- ⚠ 本リポは public。**private リポをここに登録する場合は実名を書かない**（登録が必要になったらリポを分けるか運用を再設計する）。
 
 ---
 

@@ -39,10 +39,39 @@ claude-governance/
 │   ├── settings.json.template             # ~/.claude/settings.json のテンプレート
 │   └── deliverables-policy.md             # ~/.claude/deliverables-policy.md の正典コピー
 ├── templates/
-│   └── repo-CLAUDE.md.template            # 各リポの CLAUDE.md 共通テンプレ
+│   ├── repo-CLAUDE.md.template            # 各リポの CLAUDE.md 共通テンプレ
+│   └── governance-link-block.md           # 「上位ガバナンスへの参照」ブロックの正典（監査の陳腐化検知が参照）
+├── audits/
+│   ├── audit_43repos.py                   # 全リポ機械監査（12+軸。リポ一覧は API から自動発見・private 含む）
+│   ├── audit_summary.py                   # 監査結果→ダッシュボード（VERDICT付き・private名マスク）
+│   ├── audit_local_sync.py                # 実機 ~/.claude/ ↔ 本リポ正典の同期監査（ローカル専用）
+│   ├── add_governance_link.py             # 各リポへの参照ブロック追加／--update で正典へ一括更新
+│   ├── EXCLUSIONS.md                      # 意図的独自設計リポの部分除外リスト
+│   ├── AUDIT_LATEST.md                    # 月次自動監査の最新ダッシュボード（Actions が自動更新）
+│   └── AUDIT_YYYYMMDD*.md/json            # 手動監査のスナップショット
+├── .github/workflows/
+│   └── governance-audit.yml               # 月次自動監査（毎月1日 05:00 JST・不適合時 Issue 起票）
 └── retros/
     └── RETRO_YYYYMMDD.md                  # 整備セッション毎のレトロスペクティブ
 ```
+
+---
+
+## 監査の実行方法
+
+```bash
+cd claude-governance
+# 全リポ監査（要トークン: git credential helper か GH_TOKEN。無認証は fail loud で中断）
+PYTHONIOENCODING=utf-8 python audits/audit_43repos.py > /tmp/result.json
+python audits/audit_summary.py /tmp/result.json            # private名マスク（公開用）
+python audits/audit_summary.py /tmp/result.json --no-mask  # 実名（ローカル調査用）
+# 実機 ~/.claude/ とリポ正典の同期チェック（VSCode環境のみ）
+python audits/audit_local_sync.py
+```
+
+- 月次自動監査は GitHub Actions（`governance-audit.yml`）が実行。**private リポも監査するには fine-grained PAT を secret `GOVERNANCE_PAT` に登録**（Contents/Metadata: Read、全リポ）。未登録時は private リポが「判定不可(?)」として FAIL 表示される。
+- 新リポは**自動的に監査対象**になる（ハードコードリスト廃止済み）。除外は `audits/EXCLUSIONS.md` へ（ユーザー承認必須）。
+- ⚠ 本リポは public。private リポの**実名**を EXCLUSIONS.md やコミットする監査レポートに書かないこと（ダッシュボードは自動でマスクされる）。
 
 ---
 

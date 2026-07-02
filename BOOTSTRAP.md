@@ -1,7 +1,7 @@
 # BOOTSTRAP — 新セッション開始時のブートストラップ
 
 作成日: 2026-06-23
-最終更新日: 2026-06-23
+最終更新日: 2026-07-02
 
 新しい Claude Code セッションを開始した際、このリポを参照する Claude が **最初に読むべき手順**。
 
@@ -56,6 +56,16 @@
 ### 各リポへの一括反映時の注意
 - 各リポは「self-contained」が原則。リポ間でルールに差分が出ても、各リポ単独でWeb版から動作可能であること
 - リポ固有ルールが上位ガバナンスに勝つ（リポ側で「mainブランチ運用のみ」とあれば、グローバルの「mainへ直接コミット」と整合）
+
+---
+
+## 4b. 適合状況を確認したい場合（監査機構）
+
+- `audits/AUDIT_LATEST.md` → 月次自動監査の最新結果（GitHub Actions が毎月1日に更新・不適合時は Issue 起票）
+- 手動監査: `PYTHONIOENCODING=utf-8 python audits/audit_43repos.py > /tmp/r.json && python audits/audit_summary.py /tmp/r.json`
+  - リポ一覧は API から自動発見（新リポ追加時のリスト更新は不要）
+  - 意図的独自設計リポの除外は `audits/EXCLUSIONS.md`（追加はユーザー承認必須）
+- 実機 `~/.claude/` とリポ正典の同期チェック: `python audits/audit_local_sync.py`（VSCode環境のみ）
 
 ---
 

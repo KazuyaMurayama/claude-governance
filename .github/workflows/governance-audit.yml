@@ -1,0 +1,74 @@
+# 月次ガバナンス監査（層4: 継続・ドリフト検知）
+#
+# - 毎月1日 05:00 JST（20:00 UTC 前日）に全所有リポを12+軸で監査
+# - 結果を audits/AUDIT_LATEST.md に自動コミット（パイプライン自動生成ファイル＝日付サフィックス対象外）
+# - 不適合検出時（VERDICT: FAIL）は GitHub Issue を自動起票
+# - private リポも監査するには fine-grained PAT（Contents: Read / Metadata: Read, 全リポ対象）を
+#   リポ secret `GOVERNANCE_PAT` に登録すること。無い場合は GITHUB_TOKEN にフォールバックし、
+#   private リポは「判定不可 (?)」として FAIL 扱いで surface される（サイレント除外はしない）。
+name: governance-audit
+
+on:
+  schedule:
+    - cron: "0 20 1 * *"   # 毎月1日 20:00 UTC = 2日 05:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run audit
+        env:
+          GH_TOKEN: ${{ secrets.GOVERNANCE_PAT || github.token }}
+          PYTHONIOENCODING: utf-8
+        run: |
+          python audits/audit_43repos.py > /tmp/audit_result.json
+          set +e
+          python audits/audit_summary.py /tmp/audit_result.json > audits/AUDIT_LATEST.md
+          echo "verdict=$?" >> "$GITHUB_OUTPUT"
+          set -e
+        id: run_audit
+
+      - name: Commit dashboard
+        run: |
+          git config user.name "governance-audit-bot"
+          git config user.email "kazuya.murayama.21@gmail.com"
+          git add audits/AUDIT_LATEST.md
+          if ! git diff --cached --quiet; then
+            git commit -m "audit(auto): monthly governance audit dashboard update"
+            git push origin main
+          else
+            echo "No dashboard changes."
+          fi
+
+      - name: Open issue on FAIL
+        if: steps.run_audit.outputs.verdict != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="governance-audit: 不適合検出 ($(date -u +%Y-%m-%d))"
+          # 既に同種の open issue があれば重複起票しない
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "governance-audit: 不適合検出" --json number --jq 'length')
+          if [ "$EXISTING" = "0" ]; then
+            {
+              echo "月次ガバナンス監査で不適合・判定不可・期限切れ除外が検出されました。"
+              echo ""
+              echo "詳細: [audits/AUDIT_LATEST.md](https://github.com/$GITHUB_REPOSITORY/blob/main/audits/AUDIT_LATEST.md)"
+              echo ""
+              echo "対応手順: ローカルで \`python audits/audit_43repos.py\` を再実行し（private 実名は \`--no-mask\`）、"
+              echo "各リポの是正または \`audits/EXCLUSIONS.md\` への登録（要ユーザー判断）を行うこと。"
+            } > /tmp/issue_body.md
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file /tmp/issue_body.md
+          else
+            echo "Open audit issue already exists; skipping."
+          fi
